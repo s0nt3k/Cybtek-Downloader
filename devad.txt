@@ -1,0 +1,84 @@
+Copy everything below this line into an AI chat, then describe your addon at the very bottom.
+--------------------------------------------------------------------------------
+
+You are helping me write an addon for "Cybtek Downloader", a Windows PowerShell + WinForms app that downloads video and audio with yt-dlp and ffmpeg. Please write ONE complete addon file that follows the rules below exactly.
+
+== WHAT AN ADDON IS ==
+An addon is a single .ps1 file. The app runs it with the call operator (& 'addon.ps1') at start-up and keeps the LAST hashtable the script outputs. The script must not output anything else (no strings or objects outside the hashtable; use $null = ... or [void] where needed).
+
+The hashtable can contain these keys. Every key is optional except Name:
+
+@{
+    Name        = 'Addon Name'          # [string] shown on the Addons menu
+    Version     = '1.0'                 # [string]
+    Author      = 'Author name'         # [string]
+    Description = 'One sentence.'       # [string] tooltip on the Addons menu
+
+    OnLoad             = { param($App)  }   # runs once when the app starts or the addon is installed
+    OnDownloadStarting = { param($Info) }   # runs before each download; may return a [string] of extra yt-dlp arguments
+    OnDownloadComplete = { param($Info) }   # runs after each download (successful, failed or cancelled)
+    MenuAction         = { param($App)  }   # runs when the user clicks the addon on the Addons menu
+}
+
+If MenuAction is missing, clicking the addon shows its name, version, author and description.
+
+== WHAT THE APP PASSES IN ==
+$App (OnLoad, MenuAction):
+  $App.Form       System.Windows.Forms.Form   the main window (use as the owner for dialogs)
+  $App.Settings   ordered dictionary          live app settings, e.g. VideoDir, AudioDir, LogDir, AudioFormat ('mp3','m4a','opus','vorbis','flac','wav'),
+                                              VideoContainer ('mp4','mkv'), VideoMaxHeight ('Best','2160','1440','1080','720','480','360'), DownloadPlaylists (bool).
+                                              Changes apply immediately but are only saved if the user later saves the Settings window.
+  $App.Log        scriptblock                 & $App.Log 'message'   -> writes to the Activity window and the log file
+  $App.SetStatus  scriptblock                 & $App.SetStatus 'text' -> sets the status line in the main window
+
+$Info (OnDownloadStarting, OnDownloadComplete) is a PSCustomObject:
+  Url       [string]  the link being downloaded
+  Mode      [string]  'Video' or 'Audio'
+  Source    [string]  'YouTube','TikTok','Instagram','Twitter / X','Twitch','Facebook','Reddit','Vimeo','Dailymotion','Bilibili','SoundCloud','Bandcamp' or 'Other site'
+  Folder    [string]  the download folder
+  Success   [bool]    only meaningful in OnDownloadComplete (false if the download failed or was cancelled)
+  ExitCode  [int]     yt-dlp's exit code, only in OnDownloadComplete
+
+The exact downloaded file name is NOT provided. If the addon needs the file, find the newest file in $Info.Folder:
+  Get-ChildItem -LiteralPath $Info.Folder -File | Sort-Object LastWriteTime | Select-Object -Last 1
+
+== RULES ==
+1. OnDownloadStarting: return a single string of extra yt-dlp command-line options (for example '--write-description'), or return nothing. They are inserted before the URL. Quote any paths inside the string with double quotes. Only use options that exist in current yt-dlp.
+2. All hooks run on the WinForms UI thread. Never block it for more than a moment: no long loops, no Start-Sleep, no slow synchronous web requests. Use Start-Job, Start-Process, or a System.Windows.Forms.Timer for longer work, and dispose of timers and tray icons when finished.
+3. Must work in BOTH Windows PowerShell 5.1 and PowerShell 7. Avoid PowerShell 7-only syntax (no ternary ?:, no ?? or ?., no && or || pipeline chains, no -Parallel).
+4. System.Windows.Forms and System.Drawing are already loaded. Do not call Add-Type for them.
+5. Use only the $App and $Info members listed above. Do not rely on the app's internal functions or variables.
+6. The app catches errors from hooks and logs them, but handle expected failures yourself with try/catch and report them with & $App.Log.
+   $App is only passed to OnLoad and MenuAction. If a download hook needs it, save it in OnLoad to a $script: variable with a name unique to this addon
+   (for example $script:OpenFolderAddon_App = $App), and read it back in the hook. Use the same unique prefix for any other state the addon keeps,
+   because addons share that variable space with the app.
+7. Use only ASCII characters in the file (Windows PowerShell 5.1 misreads non-ASCII text in UTF-8 files without a BOM).
+8. Do not send any data to the internet unless my description asks for it, and if it does, say so in the Description.
+9. Never delete user files permanently. If files must be removed, send them to the Recycle Bin with
+   [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($path, 'OnlyErrorDialogs', 'SendToRecycleBin')
+10. Start the file with a short comment block that says what the addon does and how to install it (Addons > Install Addon... in the app).
+
+== EXAMPLE OF A VALID ADDON ==
+# Open Folder When Done - opens the download folder after each successful download.
+# Install: Addons > Install Addon... in Cybtek Downloader.
+@{
+    Name        = 'Open Folder When Done'
+    Version     = '1.0'
+    Author      = 'Example'
+    Description = 'Opens the download folder in Explorer after each successful download.'
+
+    OnDownloadComplete = {
+        param($Info)
+        if ($Info.Success) { Start-Process explorer.exe -ArgumentList "`"$($Info.Folder)`"" }
+    }
+}
+
+== WHAT TO GIVE ME ==
+- The complete .ps1 file in one code block, ready to save.
+- A suggested file name.
+- One or two sentences on how to test it.
+If my request can't be done within these rules, tell me why and suggest the closest thing that can.
+
+== THE ADDON I WANT ==
+(Describe your addon here. For example: "When an audio download finishes, rename the newest MP3 in the folder to 'Artist - Title.mp3' using its tags, and add a menu item that opens the audio folder.")
+
