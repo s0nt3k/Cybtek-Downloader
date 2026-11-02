@@ -11,13 +11,14 @@ comes with Windows.
 
 ## Download
 
-**Latest version: 1.6.0**
+**Latest version: 1.6.1**
 
 | | |
 |---|---|
 | **[Download the latest release](../../releases/latest)** | Recommended. A zip with everything you need |
 | **[Download the whole repository as a ZIP](../../archive/refs/heads/main.zip)** | The newest code on the `main` branch |
-| **[CybtekDler-v1.6.0.ps1](CybtekDler-v1.6.0.ps1)** | The PowerShell script on its own — this one file is all you need. It downloads its splash image from this repo the first time it runs. The file name carries the version (`CybtekDler-vMAJOR.MINOR.PATCH.ps1`) |
+| **[Cybtek-Downloader.exe](Cybtek-Downloader.exe)** | A standalone Windows app — no PowerShell command needed, just double-click. Same program, compiled from the script, with the Cybtek icon. Keep it in its own folder (it creates an `Addons` folder and downloads its splash image next to itself on first run) |
+| **[Cybtek-Downloader.ps1](Cybtek-Downloader.ps1)** | The PowerShell script on its own — this one file is all you need. It downloads its splash image from this repo the first time it runs. The version is shown on the menu bar and in the About box |
 
 Unzip it anywhere, then double-click **`Cybtek Downloader.cmd`**.
 
@@ -64,23 +65,26 @@ I wanted the power of those tools without the typing:
 ### Run it
 
 1. Download or clone this repository.
-2. Double-click **`Cybtek Downloader.cmd`**.
-   Or, from a terminal:
+2. Run the app one of these ways:
+   - Double-click **`Cybtek-Downloader.exe`** (the standalone app), or
+   - Double-click **`Cybtek Downloader.cmd`** (runs the script), or from a terminal:
    ```powershell
-   powershell -NoProfile -ExecutionPolicy Bypass -File .\CybtekDler-v1.6.0.ps1
+   powershell -NoProfile -ExecutionPolicy Bypass -File .\Cybtek-Downloader.ps1
    ```
 3. When it asks to install yt-dlp, FFmpeg and Deno, click **Yes**.
 4. Copy a link, then click **Download Video** or **Download Audio**.
 
-> If Windows blocks the script because it was downloaded from the internet, right-click it, open **Properties**, and tick
-> **Unblock**, or run `Unblock-File .\CybtekDler-v1.6.0.ps1`.
+> If Windows blocks the file because it was downloaded from the internet, right-click it, open **Properties**, and tick
+> **Unblock**, or run `Unblock-File .\Cybtek-Downloader.ps1` (or `Unblock-File .\Cybtek-Downloader.exe`).
 
 ### Repository contents
 
 | File | What it is |
 |---|---|
-| `CybtekDler-v1.6.0.ps1` | The whole app. The version is in the file name (`CybtekDler-vMAJOR.MINOR.PATCH.ps1`); it downloads its splash image on first run |
-| `Cybtek Downloader.cmd` | Double-click launcher. It runs the newest `CybtekDler-v*.ps1` in the folder, so it never needs changing when you update |
+| `Cybtek-Downloader.exe` | The standalone Windows app, compiled from the script with the Cybtek icon. Behaves exactly like the script (creates its `Addons` folder and caches its splash image in the same folder); no PowerShell command needed |
+| `Cybtek-Downloader.ps1` | The whole app. The version is shown on the menu bar and in the About box; it downloads its splash image on first run |
+| `CybtekDler.ico` | The app icon used for the `.exe` (built from the splash artwork) |
+| `Cybtek Downloader.cmd` | Double-click launcher. It runs `Cybtek-Downloader.ps1` in the same folder |
 | `Cybtek-Downloader.png` | The splash image, also the window icon and help-page banner. The app downloads it from this repo on first run if it isn't already next to the script; replace it to use your own artwork |
 | `Addons/Sign-In.ps1` | Addon: log in to a site in a built-in browser so sign-in-only downloads work (see [Included addons](#included-addons)) |
 | `Addons/Color-Schemes.ps1` | Addon: seven colour schemes for the app, plus your own custom ones (see [Included addons](#included-addons)) |
@@ -352,7 +356,7 @@ See [`Addons/NotifyWhenDone.ps1`](Addons/NotifyWhenDone.ps1) for an addon that u
 ### Testing your addon
 
 1. Run the app from a terminal so you can see any errors:
-   `powershell -NoProfile -ExecutionPolicy Bypass -File .\CybtekDler-v1.6.0.ps1`
+   `powershell -NoProfile -ExecutionPolicy Bypass -File .\Cybtek-Downloader.ps1`
 2. Use **Addons > Install Addon...** to install your file. If it doesn't return a valid hashtable, the app tells you why and doesn't install it.
 3. Run a download and watch **File > Activity**.
 4. To update your addon, install it again. The app asks to replace the old copy.
