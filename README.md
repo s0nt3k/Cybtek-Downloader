@@ -1,4 +1,4 @@
-![Cybtek Downloader](CybtekDownloader-splash.jpg)
+![Cybtek Downloader](Cybtek-Downloader.png)
 
 # Cybtek Downloader
 
