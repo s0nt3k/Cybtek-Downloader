@@ -11,13 +11,13 @@ comes with Windows.
 
 ## Download
 
-**Latest version: 1.5.0**
+**Latest version: 1.6.0**
 
 | | |
 |---|---|
 | **[Download the latest release](../../releases/latest)** | Recommended. A zip with everything you need |
 | **[Download the whole repository as a ZIP](../../archive/refs/heads/main.zip)** | The newest code on the `main` branch |
-| **[CybtekDler-v1.5.0.ps1](CybtekDler-v1.5.0.ps1)** | The PowerShell script on its own — this one file is all you need. It downloads its splash image from this repo the first time it runs. The file name carries the version (`CybtekDler-vMAJOR.MINOR.PATCH.ps1`) |
+| **[CybtekDler-v1.6.0.ps1](CybtekDler-v1.6.0.ps1)** | The PowerShell script on its own — this one file is all you need. It downloads its splash image from this repo the first time it runs. The file name carries the version (`CybtekDler-vMAJOR.MINOR.PATCH.ps1`) |
 
 Unzip it anywhere, then double-click **`Cybtek Downloader.cmd`**.
 
@@ -67,19 +67,19 @@ I wanted the power of those tools without the typing:
 2. Double-click **`Cybtek Downloader.cmd`**.
    Or, from a terminal:
    ```powershell
-   powershell -NoProfile -ExecutionPolicy Bypass -File .\CybtekDler-v1.5.0.ps1
+   powershell -NoProfile -ExecutionPolicy Bypass -File .\CybtekDler-v1.6.0.ps1
    ```
 3. When it asks to install yt-dlp, FFmpeg and Deno, click **Yes**.
 4. Copy a link, then click **Download Video** or **Download Audio**.
 
 > If Windows blocks the script because it was downloaded from the internet, right-click it, open **Properties**, and tick
-> **Unblock**, or run `Unblock-File .\CybtekDler-v1.5.0.ps1`.
+> **Unblock**, or run `Unblock-File .\CybtekDler-v1.6.0.ps1`.
 
 ### Repository contents
 
 | File | What it is |
 |---|---|
-| `CybtekDler-v1.5.0.ps1` | The whole app. The version is in the file name (`CybtekDler-vMAJOR.MINOR.PATCH.ps1`); it downloads its splash image on first run |
+| `CybtekDler-v1.6.0.ps1` | The whole app. The version is in the file name (`CybtekDler-vMAJOR.MINOR.PATCH.ps1`); it downloads its splash image on first run |
 | `Cybtek Downloader.cmd` | Double-click launcher. It runs the newest `CybtekDler-v*.ps1` in the folder, so it never needs changing when you update |
 | `Cybtek-Downloader.png` | The splash image, also the window icon and help-page banner. The app downloads it from this repo on first run if it isn't already next to the script; replace it to use your own artwork |
 | `Addons/Sign-In.ps1` | Addon: log in to a site in a built-in browser so sign-in-only downloads work (see [Included addons](#included-addons)) |
@@ -143,10 +143,13 @@ These ship in the `Addons` folder and **install automatically the first time you
 
 ### Sign-In
 
-Fixes downloads that fail with *"Sign in to confirm you're not a bot"* or that need an account. Click **Addons > Sign In**,
-pick a site, and log in — including 2FA — in a built-in browser window. Click **Use this login** and the addon saves the
-browser's cookies to a `cookies.txt` and points Cybtek Downloader at it, so yt-dlp can use your session.
+Fixes downloads that fail with *"Sign in to confirm you're not a bot"* or that need an account. Once installed it adds a
+**Sign In** menu to the menu bar (after **Addons**). Open it, pick a site, and log in — including 2FA — in a built-in browser
+window. Click **Use this login** and the addon saves the browser's cookies to a `cookies.txt` and points Cybtek Downloader at
+it, so yt-dlp can use your session.
 
+- **Start-up reminder:** while this addon is installed, the app shows a short reminder at start-up to sign in via the Sign In
+  menu. Untick **Show this reminder each time Cybtek Downloader starts** to stop it; turn it back on from **Addons > Sign In**.
 - Works for **YouTube, TikTok, Instagram, Twitter/X, Twitch, Facebook, Reddit, Vimeo, Dailymotion, Bilibili, SoundCloud,
   Bandcamp**, and any other site via **Other site…**.
 - The login happens in **Microsoft WebView2**, an embedded browser on your own PC. The first time, the app offers to download
@@ -242,10 +245,16 @@ An addon file must **return a hashtable** as its last output. Every key is optio
 
     MenuText           = 'My Addon'              # the text on the Addons menu (default: name and version)
     BuildMenu          = { param($App, $Menu) }  # gives the addon a pop-out submenu instead of MenuAction
+
+    TopMenuText        = 'My Menu'               # adds a top-level menu to the menu bar (after Addons) while installed
+    TopMenuBuild       = { param($App, $Menu) }  # fills that top-level menu's dropdown each time it opens
 }
 ```
 
 - If there is no `MenuAction` or `BuildMenu`, clicking the addon shows its name, version, author, description and file path.
+- **`TopMenuText` + `TopMenuBuild`** add a menu of the addon's own to the menu bar, right after **Addons**, that appears only
+  while the addon is installed (that is how the Sign-In addon adds its **Sign In** menu). `TopMenuBuild` fills its dropdown
+  just like `BuildMenu`.
 - **`$Self`** (second argument to `OnLoad`) has `Name`, `File` and `Folder`. Use `$Self.Folder` for files your addon keeps
   next to itself (the Color Schemes addon keeps its schemes in `$Self.Folder\color-schemes`).
 - **`BuildMenu`** runs every time the submenu opens. `$Menu` is the addon's `ToolStripMenuItem`; add items to `$Menu.DropDownItems`:
@@ -274,6 +283,7 @@ An addon file must **return a hashtable** as its last output. Every key is optio
 | `$App.ColorNames` | string array | The colours a scheme can set: `Back`, `Panel`, `Input`, `Hover`, `Border`, `Accent`, `AccentLight`, `Text`, `Muted`, `Disabled`, `Good`, `Warn`, `Bad` |
 | `$App.SaveSettings` | script block | Saves the settings to disk so your changes persist: `& $App.SaveSettings`. (Changing `$App.Settings` alone only lasts the session.) |
 | `$App.EnsureWebView2` | script block | Makes sure the embedded browser (Microsoft WebView2) is installed, asking the user to download it if needed, and returns its folder (or `$null`). Load `Microsoft.Web.WebView2.Core.dll` from there. The Sign-In addon uses this |
+| `$App.AppVersion` | string | The app version (e.g. `1.6.0`). Check it with `[version]$App.AppVersion -ge [version]'1.6.0'` when your addon needs a newer feature |
 
 **`$Info`** (passed to `OnDownloadStarting` and `OnDownloadComplete`):
 
@@ -342,7 +352,7 @@ See [`Addons/NotifyWhenDone.ps1`](Addons/NotifyWhenDone.ps1) for an addon that u
 ### Testing your addon
 
 1. Run the app from a terminal so you can see any errors:
-   `powershell -NoProfile -ExecutionPolicy Bypass -File .\CybtekDler-v1.5.0.ps1`
+   `powershell -NoProfile -ExecutionPolicy Bypass -File .\CybtekDler-v1.6.0.ps1`
 2. Use **Addons > Install Addon...** to install your file. If it doesn't return a valid hashtable, the app tells you why and doesn't install it.
 3. Run a download and watch **File > Activity**.
 4. To update your addon, install it again. The app asks to replace the old copy.
